@@ -11,17 +11,11 @@
 <header>
 <button id="themeToggle" class="theme-toggle" type="button" aria-label="Alternar entre modo dia e modo espacial" title="Alternar tema"></button>
 <h1 class="logo">Space<span>time</span></h1>
-<p class="logo-subtitle">✦ Um cantinho só seu para guardar o dia ✦</p><div aria-hidden="true" style="margin-top:10px;color:var(--primary-dark);letter-spacing:8px;font-size:10px;opacity:.8">·  ·  ✦  ·  ·</div>
+<p class="logo-subtitle">Sua galáxia particular de memórias 💫</p><div aria-hidden="true" style="margin-top:10px;color:var(--primary-dark);letter-spacing:8px;font-size:10px;opacity:.8">·  ·  ✦  ·  ·</div>
 </header>
 
 
-<section class="card" id="emailCard">
-  <label class="field" for="userEmail">
-    <span>Seu e-mail</span>
-    <input id="userEmail" type="email" autocomplete="email" placeholder="seuemail@exemplo.com" aria-label="Seu e-mail">
-  </label>
-  <p id="emailStatus" class="selected-date" style="margin-bottom:0">Seu e-mail fica salvo neste navegador para identificar seus dados.</p>
-</section>
+
 
 <section class="card">
 <div class="calendar-header">
@@ -41,33 +35,39 @@
 </section>
 
 <section class="card">
-<div class="stats-header"><h2>Estatísticas</h2><span id="statsMonth" class="stats-month"></span></div>
+<div class="stats-header"><h2>Painel de Controle da Missão</h2><span id="statsMonth" class="stats-month"></span></div>
 <div class="stats-dashboard">
 
 <div class="stats-card">
-  <h3>Dias seguidos</h3>
-  <p class="stats-card-sub">Continue registrando seus dias para acompanhar sua sequência.</p>
+  <h3>Órbitas Consecutivas</h3>
+  <p class="stats-card-sub">Não quebre o alinhamento planetário. Continue registrando seus dias!</p>
   <div id="streakDays" class="streak-days"></div>
   <div id="streakBest" class="streak-best"></div>
 </div>
 
 <div class="stats-card">
-  <h3>Gráfico de humor</h3>
-  <p class="stats-card-sub">Veja como seu humor variou ao longo do mês.</p>
+  <h3>Flutuação Gravitacional do Humor</h3>
+  <p class="stats-card-sub">Monitore a atmosfera das suas emoções ao longo do mês.</p>
   <div class="mood-chart-wrap">
     <svg id="moodChart" class="mood-chart" viewBox="0 0 640 220" role="img" aria-label="Gráfico de humor do mês"></svg>
   </div>
   <div class="stats-controls">
     <span id="chartMonthLabel" class="stats-month"></span>
-    <select id="activityFilter" class="activity-filter" aria-label="Filtrar gráfico por atividade">
-      <option value="">Todas as atividades</option>
-    </select>
+    <div class="month-activity-menu">
+      <button id="monthActivityButton" class="month-activity-button" type="button" aria-expanded="false" aria-controls="monthActivityPanel">
+        <span>O que você fez no mês</span><span class="menu-chevron">⌄</span>
+      </button>
+      <div id="monthActivityPanel" class="month-activity-panel" hidden>
+        <div class="month-activity-title">Atividades registradas neste mês</div>
+        <div id="monthActivityList" class="month-activity-list"></div>
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="stats-card">
-  <h3>Conquistas</h3>
-  <p class="stats-card-sub">Pequenas marcas para acompanhar sua jornada no diário.</p>
+  <h3>Constelações Desbloqueadas</h3>
+  <p class="stats-card-sub">Estrelas e marcos alcançados na sua jornada pelo cosmos.</p>
   <div id="achievementList" class="achievement-list"></div>
 </div>
 
@@ -96,7 +96,6 @@
 </section>
 
 <section class="card"><label class="field" for="what"><span>Como foi seu dia?</span><textarea id="what" rows="4" placeholder="Conte um pouquinho sobre como foi seu dia..."></textarea></label></section>
-<section class="card"><textarea id="freeWriting" class="free-writing" aria-label="Espaço para escrita livre" placeholder=""></textarea></section>
 
 <section class="card">
 <h2>Uma foto do dia</h2>
@@ -118,7 +117,7 @@
 <div id="editMoodModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editMoodTitle"><div class="modal"><h3 id="editMoodTitle">Editar significado</h3><p>Altere a descrição desse emoji.</p><input id="editMoodDescription" type="text" placeholder="Ex.: Focado" aria-label="Editar descrição do emoji"><div class="modal-actions"><button class="cancel" type="button" onclick="closeModal('editMoodModal')">Cancelar</button><button id="confirmEditMood" class="confirm" type="button">Salvar</button></div></div></div>
 
 <script>
-const ENTRY_KEY="spacetimeDiarioEntradas",MOOD_KEY="spacetimeHumoresPersonalizados",ACTIVITY_KEY="spacetimeAtividades",REMOVED_ACTIVITY_KEY="spacetimeAtividadesRemovidas",THEME_KEY="spacetimeTema",COLOR_KEY="spacetimeCor",EMAIL_KEY="spacetimeEmail";
+const ENTRY_KEY="spacetimeDiarioEntradas",MOOD_KEY="spacetimeHumoresPersonalizados",ACTIVITY_KEY="spacetimeAtividades",REMOVED_ACTIVITY_KEY="spacetimeAtividadesRemovidas",THEME_KEY="spacetimeTema",COLOR_KEY="spacetimeCor";
 const DEFAULT_ACTIVITIES=["Estudar","Exercícios","Jogar","Família","Amigos","Descansar"];
 const MOODS=[{name:"Muito feliz",emoji:"😄"},{name:"Feliz",emoji:"🙂"},{name:"Neutro",emoji:"😐"},{name:"Triste",emoji:"🙁"},{name:"Muito triste",emoji:"😢"}];
 let selectedMood=null,photoData="",selectedDate=getToday(),calendarDate=new Date(),editingMoodIndex=null;
@@ -130,24 +129,6 @@ function getEntries(){try{return JSON.parse(localStorage.getItem(ENTRY_KEY))||[]
 function saveEntries(e){localStorage.setItem(ENTRY_KEY,JSON.stringify(e))}
 function getCustomMoods(){try{return JSON.parse(localStorage.getItem(MOOD_KEY))||[]}catch{return[]}}
 function saveCustomMoods(m){localStorage.setItem(MOOD_KEY,JSON.stringify(m))}
-
-function loadUserEmail(){
-  const email=localStorage.getItem(EMAIL_KEY)||"";
-  $("userEmail").value=email;
-  $("emailStatus").textContent=email
-    ? "E-mail salvo neste navegador."
-    : "Seu e-mail fica salvo neste navegador para identificar seus dados.";
-}
-$("userEmail").addEventListener("change",()=>{
-  const email=$("userEmail").value.trim();
-  if(email && $("userEmail").checkValidity()){
-    localStorage.setItem(EMAIL_KEY,email);
-    $("emailStatus").textContent="E-mail salvo neste navegador.";
-  }else if(!email){
-    localStorage.removeItem(EMAIL_KEY);
-    $("emailStatus").textContent="Seu e-mail fica salvo neste navegador para identificar seus dados.";
-  }
-});
 
 function applyColor(color){
   if(!["blue","wine","green"].includes(color))color="blue";
@@ -172,11 +153,123 @@ function getCustomActivities(){try{return JSON.parse(localStorage.getItem(ACTIVI
 function saveCustomActivities(a){localStorage.setItem(ACTIVITY_KEY,JSON.stringify(a))}
 function getRemovedActivities(){try{return JSON.parse(localStorage.getItem(REMOVED_ACTIVITY_KEY))||[]}catch{return[]}}
 function saveRemovedActivities(a){localStorage.setItem(REMOVED_ACTIVITY_KEY,JSON.stringify(a))}
-function getAllActivities(){const r=getRemovedActivities(),c=getCustomActivities();return [...DEFAULT_ACTIVITIES,...c].filter((a,i,arr)=>arr.indexOf(a)===i&&!r.includes(a))}
-function renderActivities(){const c=$("activities");c.innerHTML="";getAllActivities().forEach(a=>{const l=document.createElement("label");l.className="activity";l.innerHTML=`<input type="checkbox" value="${escapeHTML(a)}"><span class="activity-name">${escapeHTML(a)}</span><button type="button" class="activity-delete" aria-label="Excluir atividade ${escapeHTML(a)}" title="Excluir atividade">×</button>`;l.querySelector(".activity-delete").addEventListener("click",e=>{e.preventDefault();e.stopPropagation();deleteActivity(a)});c.appendChild(l)})}
-function deleteActivity(a){if(!confirm(`Excluir a atividade "${a}"?`))return;const r=getRemovedActivities();if(!r.includes(a))r.push(a);saveRemovedActivities(r);saveCustomActivities(getCustomActivities().filter(x=>x!==a));renderActivities()}
-$("addActivity").addEventListener("click",()=>{$("newActivity").value="";$("activityModal").classList.add("active");setTimeout(()=>$("newActivity").focus(),50)});
-$("confirmActivity").addEventListener("click",()=>{const n=$("newActivity").value.trim();if(!n)return alert("Digite o nome da atividade.");const a=getCustomActivities(),r=getRemovedActivities();if(!getAllActivities().includes(n))a.push(n);saveCustomActivities(a);saveRemovedActivities(r.filter(x=>x!==n));renderActivities();closeModal("activityModal")});
+function normalizeActivity(v){return String(v||"").trim().toLocaleLowerCase("pt-BR")}
+function getAllActivities(){
+  const removed=new Set(getRemovedActivities().map(normalizeActivity));
+  const combined=[...DEFAULT_ACTIVITIES,...getCustomActivities()];
+  return combined.filter((a,i,arr)=>{
+    const key=normalizeActivity(a);
+    return key && arr.findIndex(x=>normalizeActivity(x)===key)===i && !removed.has(key);
+  });
+}
+function createActivityCard(name){
+  const card=document.createElement("div");
+  card.className="activity";
+  card.dataset.activity=name;
+
+  const checkbox=document.createElement("input");
+  checkbox.type="checkbox";
+  checkbox.value=name;
+  checkbox.setAttribute("aria-label",`Selecionar atividade ${name}`);
+
+  const label=document.createElement("span");
+  label.className="activity-name";
+  label.textContent=name;
+
+  const del=document.createElement("button");
+  del.type="button";
+  del.className="activity-delete";
+  del.setAttribute("aria-label",`Excluir atividade ${name}`);
+  del.title="Excluir atividade";
+  del.textContent="×";
+
+  card.append(checkbox,label,del);
+
+  checkbox.addEventListener("change",()=>{
+    card.classList.toggle("selected",checkbox.checked);
+  });
+
+  label.addEventListener("click",e=>{
+    e.preventDefault();
+    checkbox.checked=!checkbox.checked;
+    checkbox.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+
+  card.addEventListener("click",e=>{
+    if(e.target===del || e.target===checkbox || e.target===label)return;
+    checkbox.checked=!checkbox.checked;
+    checkbox.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+
+  del.addEventListener("click",e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    deleteActivity(name);
+  });
+
+  return card;
+}
+function renderActivities(selectedValues=[]){
+  const c=$("activities");
+  c.innerHTML="";
+  const selected=new Set((selectedValues||[]).map(normalizeActivity));
+  getAllActivities().forEach(name=>{
+    const card=createActivityCard(name);
+    const checkbox=card.querySelector('input[type="checkbox"]');
+    if(selected.has(normalizeActivity(name))){
+      checkbox.checked=true;
+      card.classList.add("selected");
+    }
+    c.appendChild(card);
+  });
+}
+function deleteActivity(name){
+  if(!confirm(`Excluir a atividade "${name}"?`))return;
+  const key=normalizeActivity(name);
+  saveRemovedActivities([...getRemovedActivities().filter(a=>normalizeActivity(a)!==key),name]);
+  saveCustomActivities(getCustomActivities().filter(a=>normalizeActivity(a)!==key));
+  renderActivities();
+  updateStats();
+}
+function openActivityModal(){
+  const input=$("newActivity");
+  input.value="";
+  $("activityModal").classList.add("active");
+  setTimeout(()=>input.focus(),80);
+}
+$("addActivity").addEventListener("click",openActivityModal);
+
+function addActivityFromModal(){
+  const input=$("newActivity");
+  const name=input.value.trim();
+
+  if(!name){
+    alert("Digite o nome da atividade.");
+    input.focus();
+    return;
+  }
+
+  const key=normalizeActivity(name);
+  if(getAllActivities().some(a=>normalizeActivity(a)===key)){
+    alert("Essa atividade já existe na lista.");
+    input.focus();
+    return;
+  }
+
+  // Salva primeiro e só depois redesenha a lista.
+  const custom=getCustomActivities();
+  custom.push(name);
+  saveCustomActivities(custom);
+
+  // Garante que uma atividade com esse nome volte a aparecer.
+  saveRemovedActivities(getRemovedActivities().filter(a=>normalizeActivity(a)!==key));
+
+  renderActivities([name]);
+  closeModal("activityModal");
+  input.value="";
+}
+$("confirmActivity").addEventListener("click",addActivityFromModal);
+
 
 function renderCalendar(){
  const year=calendarDate.getFullYear(),month=calendarDate.getMonth(),names=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -196,8 +289,8 @@ function renderCalendar(){
   b.addEventListener("click",()=>{selectedDate=date;loadDate(date);renderCalendar();updateStats()});g.appendChild(b);
  }
 }
-$("prevMonth").addEventListener("click",()=>{calendarDate.setMonth(calendarDate.getMonth()-1);renderCalendar();updateStats()});
-$("nextMonth").addEventListener("click",()=>{calendarDate.setMonth(calendarDate.getMonth()+1);renderCalendar();updateStats()});
+$("prevMonth").addEventListener("click",()=>{calendarDate.setMonth(calendarDate.getMonth()-1);selectedMonthActivity="";renderCalendar();updateStats()});
+$("nextMonth").addEventListener("click",()=>{calendarDate.setMonth(calendarDate.getMonth()+1);selectedMonthActivity="";renderCalendar();updateStats()});
 
 function selectMood(b){document.querySelectorAll(".mood").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");selectedMood={name:b.dataset.mood,emoji:b.querySelector(".emoji").textContent}}
 document.querySelectorAll(".mood").forEach(b=>b.addEventListener("click",()=>selectMood(b)));
@@ -221,15 +314,15 @@ function processImage(file){
  const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const max=1000;let w=img.width,h=img.height;if(w>max||h>max){if(w>h){h=Math.round(h*max/w);w=max}else{w=Math.round(w*max/h);h=max}}const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);photoData=c.toDataURL("image/jpeg",.72);$("preview").src=photoData;$("preview").style.display="block"};img.src=e.target.result};r.readAsDataURL(file)
 }
 
-function clearForm(){selectedMood=null;document.querySelectorAll(".mood").forEach(b=>b.classList.remove("selected"));document.querySelectorAll(".activity input").forEach(i=>i.checked=false);$("what").value="";$("freeWriting").value="";photoData="";$("photo").value="";$("preview").src="";$("preview").style.display="none"}
+function clearForm(){selectedMood=null;document.querySelectorAll(".mood").forEach(b=>b.classList.remove("selected"));document.querySelectorAll(".activity input").forEach(i=>{i.checked=false;i.closest(".activity")?.classList.remove("selected")});$("what").value="";photoData="";$("photo").value="";$("preview").src="";$("preview").style.display="none"}
 function loadDate(date){
  clearForm();const e=getEntries().find(x=>x.date===date);if(!e)return;
  let b=[...document.querySelectorAll(".mood")].find(x=>x.dataset.mood===e.mood&&x.querySelector(".emoji").textContent===e.emoji);
  if(!b){b=document.createElement("button");b.className="mood";b.dataset.mood=e.mood;b.type="button";b.innerHTML=`<span class="emoji">${escapeHTML(e.emoji)}</span><span class="mood-name">${escapeHTML(e.mood)}</span>`;b.addEventListener("click",()=>selectMood(b));$("moods").appendChild(b)}selectMood(b);
- (e.activities||[]).forEach(a=>{let i=[...document.querySelectorAll(".activity input")].find(x=>x.value===a);if(!i){const l=document.createElement("label");l.className="activity";l.innerHTML=`<input type="checkbox" value="${escapeHTML(a)}"><span class="activity-name">${escapeHTML(a)}</span><button type="button" class="activity-delete" aria-label="Excluir atividade">×</button>`;l.querySelector(".activity-delete").addEventListener("click",ev=>{ev.preventDefault();ev.stopPropagation();deleteActivity(a)});$("activities").appendChild(l);i=l.querySelector("input")}i.checked=true});
- $("what").value=e.what||"";$("freeWriting").value=e.freeWriting||"";photoData=e.photo||"";if(photoData){$("preview").src=photoData;$("preview").style.display="block"}
+ (e.activities||[]).forEach(a=>{let i=[...document.querySelectorAll(".activity input")].find(x=>x.value===a);if(!i){const card=createActivityCard(a);$("activities").appendChild(card);i=card.querySelector("input")}i.checked=true;i.closest(".activity")?.classList.add("selected")});
+ $("what").value=[e.what,e.freeWriting].filter(Boolean).join(e.what&&e.freeWriting?"\n\n":"");photoData=e.photo||"";if(photoData){$("preview").src=photoData;$("preview").style.display="block"}
 }
-$("save").addEventListener("click",()=>{if(!selectedMood)return alert("Escolha como você está se sentindo.");const activities=[...document.querySelectorAll(".activity input:checked")].map(i=>i.value),e={id:Date.now(),date:selectedDate,mood:selectedMood.name,emoji:selectedMood.emoji,activities,what:$("what").value.trim(),freeWriting:$("freeWriting").value,photo:photoData},entries=getEntries(),idx=entries.findIndex(x=>x.date===selectedDate);if(idx!==-1){e.id=entries[idx].id;entries[idx]=e}else entries.unshift(e);saveEntries(entries);renderCalendar();updateStats();renderHistory();alert("Entrada salva no SpaceTime.")});
+$("save").addEventListener("click",()=>{if(!selectedMood)return alert("Escolha como você está se sentindo.");const activities=[...document.querySelectorAll(".activity input:checked")].map(i=>i.value),e={id:Date.now(),date:selectedDate,mood:selectedMood.name,emoji:selectedMood.emoji,activities,what:$("what").value.trim(),photo:photoData},entries=getEntries(),idx=entries.findIndex(x=>x.date===selectedDate);if(idx!==-1){e.id=entries[idx].id;entries[idx]=e}else entries.unshift(e);saveEntries(entries);renderCalendar();updateStats();renderHistory();alert("Entrada salva no SpaceTime.")});
 
 function updateStats(){
   const year=calendarDate.getFullYear(),month=calendarDate.getMonth();
@@ -245,16 +338,9 @@ function updateStats(){
   });
 
   renderStreak(allEntries);
-  renderMoodChart(entries, $("activityFilter").value);
   renderAchievements(allEntries);
+  renderMonthActivityMenu(entries);
 
-  const filter=$("activityFilter");
-  const current=filter.value;
-  filter.innerHTML='<option value="">Todas as atividades</option>';
-  [...new Set(allEntries.flatMap(e=>e.activities||[]))].sort((a,b)=>a.localeCompare(b,"pt-BR")).forEach(a=>{
-    const o=document.createElement("option");o.value=a;o.textContent=a;filter.appendChild(o)
-  });
-  if([...filter.options].some(o=>o.value===current))filter.value=current;
 
   const c=$("statsContainer");
   c.innerHTML="";
@@ -278,6 +364,74 @@ function updateStats(){
 
 function getDateKey(date){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`}
 function addDays(date,n){const d=new Date(date);d.setDate(d.getDate()+n);return d}
+
+let selectedMonthActivity="";
+
+function renderMonthActivityMenu(entries){
+  const list=$("monthActivityList");
+  if(!list)return;
+
+  const counts=new Map();
+  entries.forEach(e=>{
+    (e.activities||[]).forEach(activity=>{
+      const key=normalizeActivity(activity);
+      if(!key)return;
+      const existing=counts.get(key);
+      if(existing)existing.count++;
+      else counts.set(key,{name:activity,count:1});
+    });
+  });
+
+  const activities=[...counts.values()].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
+
+  list.innerHTML="";
+
+  const allButton=document.createElement("button");
+  allButton.type="button";
+  allButton.className="month-activity-item"+(!selectedMonthActivity?" active":"");
+  allButton.innerHTML='<span class="month-activity-name">Todas as atividades</span><span class="month-activity-count">'+entries.length+' registro'+(entries.length===1?"":"s")+'</span>';
+  allButton.addEventListener("click",()=>{
+    selectedMonthActivity="";
+    renderMonthActivityMenu(entries);
+    renderMoodChart(entries,"");
+  });
+  list.appendChild(allButton);
+
+  if(!activities.length){
+    const empty=document.createElement("div");
+    empty.className="month-activity-empty";
+    empty.textContent="Nenhuma atividade registrada neste mês.";
+    list.appendChild(empty);
+    return;
+  }
+
+  activities.forEach(item=>{
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="month-activity-item"+(normalizeActivity(selectedMonthActivity)===normalizeActivity(item.name)?" active":"");
+    button.innerHTML=`<span class="month-activity-name">${escapeHTML(item.name)}</span><span class="month-activity-count">${item.count} dia${item.count===1?"":"s"}</span>`;
+    button.addEventListener("click",()=>{
+      selectedMonthActivity=item.name;
+      renderMonthActivityMenu(entries);
+      renderMoodChart(entries,item.name);
+    });
+    list.appendChild(button);
+  });
+}
+
+const monthActivityButton=$("monthActivityButton");
+const monthActivityPanel=$("monthActivityPanel");
+monthActivityButton.addEventListener("click",()=>{
+  const opening=monthActivityPanel.hidden;
+  monthActivityPanel.hidden=!opening;
+  monthActivityButton.setAttribute("aria-expanded",String(opening));
+});
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".month-activity-menu")){
+    monthActivityPanel.hidden=true;
+    monthActivityButton.setAttribute("aria-expanded","false");
+  }
+});
 
 function renderStreak(allEntries){
   const set=new Set(allEntries.map(e=>e.date));
@@ -349,17 +503,16 @@ function renderAchievements(allEntries){
     best=Math.max(best,run);prev=d
   });
   const achievements=[
-    {icon:"🌱",name:"Primeiro dia",desc:"Registrar 1 dia",ok:allEntries.length>=1},
-    {icon:"🔥",name:"Uma semana",desc:"7 dias seguidos",ok:best>=7},
-    {icon:"📖",name:"10 registros",desc:"Guardar 10 dias",ok:allEntries.length>=10},
-    {icon:"🌟",name:"Um mês",desc:"30 registros",ok:allEntries.length>=30},
-    {icon:"💫",name:"Sequência",desc:"14 dias seguidos",ok:best>=14},
-    {icon:"🏆",name:"Constância",desc:"60 registros",ok:allEntries.length>=60}
+    {icon:"🚀",name:"Lançamento da Missão",desc:"Registrar 1 dia",ok:allEntries.length>=1},
+    {icon:"🪐",name:"Órbita Estável",desc:"7 dias seguidos",ok:best>=7},
+    {icon:"🌙",name:"Expedição Lunar",desc:"Guardar 10 dias",ok:allEntries.length>=10},
+    {icon:"🌌",name:"Expedição Estelar",desc:"30 registros",ok:allEntries.length>=30},
+    {icon:"☄️",name:"Chuva de Meteoros",desc:"14 dias seguidos",ok:best>=14},
+    {icon:"✨",name:"Constelação Completa",desc:"60 registros",ok:allEntries.length>=60}
   ];
   $("achievementList").innerHTML=achievements.map(a=>`<div class="achievement ${a.ok?"":"locked"}"><span class="achievement-icon">${a.icon}</span><div class="achievement-name">${a.name}</div><div class="achievement-desc">${a.desc}</div></div>`).join("")
 }
 
-$("activityFilter").addEventListener("change",()=>updateStats());
 $("historyToggle").addEventListener("click",()=>{const p=$("historyPanel"),open=p.classList.toggle("open");$("historyToggle").setAttribute("aria-expanded",open)});
 function renderHistory(){
  const entries=getEntries(),c=$("entries");if(!entries.length){c.innerHTML='<div class="empty">Nenhum dia registrado ainda.</div>';return}
@@ -368,10 +521,10 @@ function renderHistory(){
 function removeEntry(id){if(!confirm("Excluir este registro?"))return;saveEntries(getEntries().filter(e=>e.id!==id));renderCalendar();updateStats();renderHistory();if(!getEntries().some(e=>e.date===selectedDate))clearForm()}
 function closeModal(id){$(id).classList.remove("active")}
 document.querySelectorAll(".modal-overlay").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("active")}));
-$("newActivity").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("confirmActivity").click()}});
+$("newActivity").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addActivityFromModal()}});$("activityModal").addEventListener("click",e=>{if(e.target.id==="confirmActivity")addActivityFromModal()});
 $("newMoodDescription").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("confirmMood").click()}});
 $("editMoodDescription").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("confirmEditMood").click()}});
-loadTheme();loadUserEmail();renderActivities();renderCustomMoods();renderCalendar();loadDate(selectedDate);updateStats();renderHistory();
+loadTheme();renderActivities();renderCustomMoods();renderCalendar();loadDate(selectedDate);updateStats();renderHistory();
 </script>
 </body>
 </html>
